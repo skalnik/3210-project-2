@@ -3,7 +3,7 @@ user: clean_user simclist
 	cc -shared -o buzzLock.so buzzLockU.o simclist.o
 
 simclist: clean_simclist
-	cc -c vendor/simclist.c
+	cc -fPIC -c vendor/simclist.c
 
 clean: clean_user clean_simclist
 

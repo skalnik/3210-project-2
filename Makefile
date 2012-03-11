@@ -1,13 +1,13 @@
-user : clean
+user: clean_user simclist
 	cc -c buzzLockU.c
 	cc -shared -o buzzLock.so buzzLockU.o simclist.o
 
 simclist:
 	cc -c vendor/simclist.c
 
-clean: clean_user clean_simclist
+clean: clean_user
 
-clean_user:
+clean_user: clean_simclist
 	rm -f buzzLockU.o
 	rm -f buzzLock.so
 

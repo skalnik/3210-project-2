@@ -1,4 +1,5 @@
-#include <pthread.h>
+#include <unistd.h>
+#include "vendor/simclist.h"
 
 #ifndef BUZZLOCK_H_
 #define BUZZLOCK_H_
@@ -6,10 +7,8 @@
 #define BZZ_BLACK 1
 #define BZZ_GOLD  0
 
-typedef int useconds_t;
-
 typedef struct {
-	pthread_t thread;
+	pid_t pid;
 	int color;
 } bzz_thread_t;
 

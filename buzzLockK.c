@@ -6,18 +6,18 @@
 extern bzz_t;
 extern useconds_t;
 extern bzz_thread_t;
-extern BZZ_BLACK;
-extern BZZ_GOLD;
+
 
 
 init_bzz( bzz_t *lock, int num_threads, useconds_t timeout){
-	lock -> max_num_threads = num_threads;
-	lock -> timeout = timeout;
-	*(lock -> threads) = bzz_thread_t[num_threads];
+	&lock -> max_num_threads = num_threads;
+	&lock -> timeout = timeout;
+	*(&lock ->threads) = bzz_thread_t[num_threads];
 }
 /* the current thread has color black/gold with respect to lock lock */
 
-bzz_color([BZZ_BLACK|BZZ_GOLD], bzz_t *lock){
+bzz_color(int color, bzz_t *lock){
+
 
 }
 

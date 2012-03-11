@@ -1,5 +1,4 @@
 #include <pthreads.h>
-#include <linux/list.h>
 
 #ifndef BUZZLOCKU_H_
 #define BUZZLOCKU_H_

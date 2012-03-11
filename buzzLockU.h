@@ -1,5 +1,4 @@
 #include <unistd.h>
-#include "vendor/simclist.h"
 
 #ifndef BUZZLOCK_H_
 #define BUZZLOCK_H_

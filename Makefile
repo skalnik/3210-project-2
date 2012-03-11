@@ -1,4 +1,4 @@
-user: clean_user simclist
+user: clean_user
 	cc -fPIC -c buzzLockU.c
 	cc -shared -o buzzLock.so buzzLockU.o
 

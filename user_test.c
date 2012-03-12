@@ -12,7 +12,7 @@
 
 #define TIMEOUT 10  // in us
 #define ACTIVITY 5 // in us
-buzz_t GTLOCK;
+bzz_t GTLOCK;
 
 void thread(){
   struct timeval t1,t2;
@@ -20,8 +20,8 @@ void thread(){
   int ID = omp_get_thread_num();
 
   // SET COLOR OF LOCK HERE Depending on condiion
-  if(ID<=GOLD) buzz_color(BZZ_GOLD,GTLOCK);
-  else         buzz_color(BZZ_BLACK,GTLOCK);
+  if(ID<=GOLD) bzz_color(BZZ_GOLD,GTLOCK);
+  else         bzz_color(BZZ_BLACK,GTLOCK);
 
   gettimeofday(&t1,NULL);
   bzz_lock(GTLOCK);

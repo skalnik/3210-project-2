@@ -1,7 +1,7 @@
 user: clean_user simclist
 	cc -fPIC -c buzzLockU.c
 	cc -shared -o buzzLockU.so buzzLockU.o simclist.o
-	cc user_test.c -o user_test buzzLockU.o simclist.o
+	cc -fopenmp user_test.c -o user_test buzzLockU.o simclist.o
 
 simclist: clean_simclist
 	cc -fPIC -c vendor/simclist.c

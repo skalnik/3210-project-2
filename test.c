@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <omp.h>
-#include<time.h>
-#include<sys/time.h>
-#include<unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#include <unistd.h>
 #include "buzz.h"
 
 #define THREADCOUNT 100

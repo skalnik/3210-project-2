@@ -14,14 +14,14 @@ void init_bzz(bzz_t *lock, int num_threads, useconds_t timeout) {
 	list_init(lock->waiting_black_threads);
 }
 
-void bzz_kill(bzz_t lock) {
-	pthread_mutex_lock(&lock.mutex);
-	list_destroy(lock.threads);
-	list_destroy(lock.waiting_gold_threads);
-	list_destroy(lock.waiting_black_threads);
-	pthread_mutex_unlock(&lock.mutex);
-	pthread_mutex_destroy(&lock.mutex);
-	pthread_cond_destroy(&lock.cond);
+void bzz_kill(bzz_t *lock) {
+	pthread_mutex_lock(&lock->mutex);
+	list_destroy(lock->threads);
+	list_destroy(lock->waiting_gold_threads);
+	list_destroy(lock->waiting_black_threads);
+	pthread_mutex_unlock(&lock->mutex);
+	pthread_mutex_destroy(&lock->mutex);
+	pthread_cond_destroy(&lock->cond);
 }
 
 pid_t get_thread_id() {
@@ -80,11 +80,11 @@ void bzz_lock(bzz_t *lock) {
 	pthread_mutex_unlock(&lock->mutex);
 }
 
-void bzz_release(bzz_t lock) {
-	pthread_mutex_lock(&lock.mutex);
-	lock.active_threads--;
-	pthread_mutex_unlock(&lock.mutex);
-	pthread_cond_signal(&lock.cond);
+void bzz_release(bzz_t *lock) {
+	pthread_mutex_lock(&lock->mutex);
+	lock->active_threads--;
+	pthread_mutex_unlock(&lock->mutex);
+	pthread_cond_signal(&lock->cond);
 }
 
 /* NOT THREAD SAFE! */

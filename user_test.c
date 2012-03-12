@@ -26,7 +26,7 @@ void thread(){
   gettimeofday(&t1,NULL);
   bzz_lock(&GTLOCK);
   usleep(ACTIVITY); // ACTIVITY
-  bzz_release(GTLOCK);
+  bzz_release(&GTLOCK);
   gettimeofday(&t2,NULL);
 
   elapsedTime = (t2.tv_sec - t1.tv_sec);
@@ -44,5 +44,5 @@ int main(){
   {
     thread();
   }
-  bzz_kill(GTLOCK);
+  bzz_kill(&GTLOCK);
 }

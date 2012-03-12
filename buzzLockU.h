@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <pthread.h>
-#include "buzz.h"
 #include "vendor/simclist.h"
 
 #ifndef BUZZLOCK_H_
@@ -25,6 +24,8 @@ typedef struct {
 	list_t waiting_gold_threads;
 	list_t waiting_black_threads;
 } bzz_t;
+
+#include "buzz.h"
 
 void* get_thread(int, bzz_t);
 int full_active_threads(bzz_t);

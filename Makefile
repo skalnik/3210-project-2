@@ -1,10 +1,10 @@
 user: clean_user simclist
-	cc -fPIC -c buzzLockU.c
-	cc -shared -o buzzLockU.so buzzLockU.o simclist.o
-	cc -fopenmp user_test.c -o user_test buzzLockU.o simclist.o
+	gcc -fPIC -c buzzLockU.c
+	gcc -shared -o buzzLockU.so buzzLockU.o simclist.o
+	gcc -fopenmp user_test.c -o user_test buzzLockU.o simclist.o
 
 simclist: clean_simclist
-	cc -fPIC -c vendor/simclist.c
+	gcc -fPIC -DSIMCLIST_WITH_THREADS -c vendor/simclist.c -std=c99
 
 clean: clean_user clean_simclist
 

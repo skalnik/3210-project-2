@@ -22,9 +22,9 @@ typedef struct {
 	int max_active_threads;
 	int active_threads;
 	useconds_t timeout;
-	list_t threads;
-	list_t waiting_gold_threads;
-	list_t waiting_black_threads;
+	list_t *threads;
+	list_t *waiting_gold_threads;
+	list_t *waiting_black_threads;
 } bzz_t;
 
 #include "buzz.h"

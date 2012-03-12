@@ -1,18 +1,22 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "buzzLockU.h"
 
 void init_bzz(bzz_t lock, int num_threads, useconds_t timeout) {
 	lock.max_active_threads = num_threads;
 	lock.timeout = timeout;
-	list_init(&lock.threads);
-	list_init(&lock.waiting_gold_threads);
-	list_init(&lock.waiting_black_threads);
+	pthread_mutex_init(&lock.mutex, NULL);
+	pthread_cond_init(&lock.cond, NULL);
+	list_init(lock.threads);
+	list_init(lock.waiting_gold_threads);
+	list_init(lock.waiting_black_threads);
 }
 
 void bzz_kill(bzz_t lock) {
 	pthread_mutex_lock(&lock.mutex);
-	list_destroy(&lock.threads);
-	list_destroy(&lock.waiting_gold_threads);
-	list_destroy(&lock.waiting_black_threads);
+	list_destroy(lock.threads);
+	list_destroy(lock.waiting_gold_threads);
+	list_destroy(lock.waiting_black_threads);
 	pthread_mutex_unlock(&lock.mutex);
 	pthread_mutex_destroy(&lock.mutex);
 	pthread_cond_destroy(&lock.cond);
@@ -28,10 +32,10 @@ void bzz_color(int color, bzz_t lock) {
 
 	if(found == NULL) {
 		// Not found, add new thread to thread list
-		bzz_thread_t *thread;
+		bzz_thread_t *thread = malloc(sizeof(bzz_thread_t));
 		thread->id = id;
 		thread->color = color;
-		list_append(&lock.threads, thread);
+		list_append(lock.threads, &thread);
 	}
 	else {
 		// Found thread, just update color
@@ -85,11 +89,11 @@ void bzz_release(bzz_t lock) {
 /* Only call when mutex acquired */
 void add_active(bzz_thread_t *thread, bzz_t lock) {
 	if(is_gold(thread)) {
-		int position = list_locate(&lock.waiting_gold_threads, thread);
-		list_delete_at(&lock.waiting_gold_threads, position);
+		int position = list_locate(lock.waiting_gold_threads, thread);
+		list_delete_at(lock.waiting_gold_threads, position);
 	} else {
-		int position = list_locate(&lock.waiting_black_threads, thread);
-		list_delete_at(&lock.waiting_black_threads, position);
+		int position = list_locate(lock.waiting_black_threads, thread);
+		list_delete_at(lock.waiting_black_threads, position);
 	}
 	lock.active_threads++;
 }
@@ -114,9 +118,9 @@ void wait(bzz_t lock) {
 void add_to_waiting_threads(bzz_thread_t *thread, bzz_t lock) {
 	thread->waiting_since = time_with_usec();
 	if(is_gold(thread)) {
-		list_append(&lock.waiting_gold_threads, thread);
+		list_append(lock.waiting_gold_threads, thread);
 	} else {
-		list_append(&lock.waiting_black_threads, thread);
+		list_append(lock.waiting_black_threads, thread);
 	}
 }
 
@@ -126,11 +130,11 @@ double time_with_usec() {
 }
 
 unsigned int num_black_waiting(bzz_t lock) {
-	return list_size(&lock.waiting_black_threads);
+	return list_size(lock.waiting_black_threads);
 }
 
 unsigned int num_gold_waiting(bzz_t lock) {
-	return list_size(&lock.waiting_gold_threads);
+	return list_size(lock.waiting_gold_threads);
 }
 
 int full_active_threads(bzz_t lock) {
@@ -139,16 +143,16 @@ int full_active_threads(bzz_t lock) {
 
 unsigned int num_old_gold_waiting(bzz_t lock) {
 	unsigned int num_old_gold_waiting = 0;
-	list_t waiting_gold_threads = lock.waiting_gold_threads;
-	list_iterator_start(&waiting_gold_threads);
+	list_t *waiting_gold_threads = lock.waiting_gold_threads;
+	list_iterator_start(waiting_gold_threads);
 
-	while(list_iterator_hasnext(&waiting_gold_threads)) {
-		bzz_thread_t *current = list_iterator_next(&waiting_gold_threads);
+	while(list_iterator_hasnext(waiting_gold_threads)) {
+		bzz_thread_t *current = list_iterator_next(waiting_gold_threads);
 		if(is_old(current, lock)) {
 			num_old_gold_waiting++;
 		}
 	}
-	list_iterator_stop(&waiting_gold_threads);
+	list_iterator_stop(waiting_gold_threads);
 
 	return num_old_gold_waiting;
 }
@@ -156,16 +160,16 @@ unsigned int num_old_gold_waiting(bzz_t lock) {
 void* get_thread(int id, bzz_t lock) {
 	bzz_thread_t *found = 0;
 
-	list_t threads = lock.threads;
-	list_iterator_start(&threads);
+	list_t *threads = lock.threads;
+	list_iterator_start(threads);
 
-	while(list_iterator_hasnext(&threads)) {
-		bzz_thread_t *current = list_iterator_next(&threads);
+	while(list_iterator_hasnext(threads)) {
+		bzz_thread_t *current = list_iterator_next(threads);
 		if(current->id == id) {
 			found = current;
 		}
 	}
-	list_iterator_stop(&threads);
+	list_iterator_stop(threads);
 
 	return found;
 }

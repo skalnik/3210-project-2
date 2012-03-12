@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "buzzLockU.h"
 
 void init_bzz(bzz_t lock, int num_threads, useconds_t timeout) {
@@ -7,8 +5,11 @@ void init_bzz(bzz_t lock, int num_threads, useconds_t timeout) {
 	lock.timeout = timeout;
 	pthread_mutex_init(&lock.mutex, NULL);
 	pthread_cond_init(&lock.cond, NULL);
+	lock.threads = malloc(sizeof(list_t));
 	list_init(lock.threads);
+	lock.waiting_gold_threads = malloc(sizeof(list_t));
 	list_init(lock.waiting_gold_threads);
+	lock.waiting_black_threads = malloc(sizeof(list_t));
 	list_init(lock.waiting_black_threads);
 }
 

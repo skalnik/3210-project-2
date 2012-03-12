@@ -18,8 +18,12 @@ void bzz_kill(bzz_t lock) {
 	pthread_cond_destroy(&lock.cond);
 }
 
+pid_t get_thread_id() {
+	return syscall(SYS_gettid);
+}
+
 void bzz_color(int color, bzz_t lock) {
-	pid_t id = gettid();
+	pid_t id = get_thread_id();
 	bzz_thread_t *found = (bzz_thread_t *)get_thread(id, lock);
 
 	if(found == NULL) {
@@ -37,7 +41,7 @@ void bzz_color(int color, bzz_t lock) {
 
 void bzz_lock(bzz_t lock) {
 	pthread_mutex_lock(&lock.mutex);
-	pid_t id = gettid();
+	pid_t id = get_thread_id();
 	int free_threads;
 
 	bzz_thread_t *thread = (bzz_thread_t *)get_thread(id, lock);

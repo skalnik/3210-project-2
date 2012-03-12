@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "vendor/simclist.h"

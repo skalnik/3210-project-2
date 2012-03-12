@@ -20,11 +20,11 @@ void thread(){
   int ID = omp_get_thread_num();
 
   // SET COLOR OF LOCK HERE Depending on condiion
-  if(ID<=GOLD) bzz_color(BZZ_GOLD,GTLOCK);
-  else         bzz_color(BZZ_BLACK,GTLOCK);
+  if(ID<=GOLD) bzz_color(BZZ_GOLD, &GTLOCK);
+  else         bzz_color(BZZ_BLACK, &GTLOCK);
 
   gettimeofday(&t1,NULL);
-  bzz_lock(GTLOCK);
+  bzz_lock(&GTLOCK);
   usleep(ACTIVITY); // ACTIVITY
   bzz_release(GTLOCK);
   gettimeofday(&t2,NULL);
@@ -39,7 +39,7 @@ void thread(){
 
 int main(){
   omp_set_num_threads(THREADCOUNT);
-  init_bzz(GTLOCK,THREADPOOL,TIMEOUT);
+  init_bzz(&GTLOCK,THREADPOOL,TIMEOUT);
   #pragma omp parallel
   {
     thread();

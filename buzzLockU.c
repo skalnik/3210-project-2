@@ -1,16 +1,17 @@
 #include "buzzLockU.h"
+#include <stdio.h>
 
-void init_bzz(bzz_t lock, int num_threads, useconds_t timeout) {
-	lock.max_active_threads = num_threads;
-	lock.timeout = timeout;
-	pthread_mutex_init(&lock.mutex, NULL);
-	pthread_cond_init(&lock.cond, NULL);
-	lock.threads = malloc(sizeof(list_t));
-	list_init(lock.threads);
-	lock.waiting_gold_threads = malloc(sizeof(list_t));
-	list_init(lock.waiting_gold_threads);
-	lock.waiting_black_threads = malloc(sizeof(list_t));
-	list_init(lock.waiting_black_threads);
+void init_bzz(bzz_t *lock, int num_threads, useconds_t timeout) {
+	lock->max_active_threads = num_threads;
+	lock->timeout = timeout;
+	pthread_mutex_init(&lock->mutex, NULL);
+	pthread_cond_init(&lock->cond, NULL);
+	lock->threads = malloc(sizeof(list_t));
+	list_init(lock->threads);
+	lock->waiting_gold_threads = malloc(sizeof(list_t));
+	list_init(lock->waiting_gold_threads);
+	lock->waiting_black_threads = malloc(sizeof(list_t));
+	list_init(lock->waiting_black_threads);
 }
 
 void bzz_kill(bzz_t lock) {
@@ -27,7 +28,7 @@ pid_t get_thread_id() {
 	return syscall(SYS_gettid);
 }
 
-void bzz_color(int color, bzz_t lock) {
+void bzz_color(int color, bzz_t *lock) {
 	pid_t id = get_thread_id();
 	bzz_thread_t *found = (bzz_thread_t *)get_thread(id, lock);
 
@@ -36,7 +37,7 @@ void bzz_color(int color, bzz_t lock) {
 		bzz_thread_t *thread = malloc(sizeof(bzz_thread_t));
 		thread->id = id;
 		thread->color = color;
-		list_append(lock.threads, &thread);
+		list_append(lock->threads, thread);
 	}
 	else {
 		// Found thread, just update color
@@ -44,8 +45,8 @@ void bzz_color(int color, bzz_t lock) {
 	}
 }
 
-void bzz_lock(bzz_t lock) {
-	pthread_mutex_lock(&lock.mutex);
+void bzz_lock(bzz_t *lock) {
+	pthread_mutex_lock(&lock->mutex);
 	pid_t id = get_thread_id();
 	int free_threads;
 
@@ -55,7 +56,7 @@ void bzz_lock(bzz_t lock) {
 		add_to_waiting_threads(thread, lock);
 
 		do {
-			wait(lock);
+			bzz_wait(lock);
 
 			if(is_gold(thread)) {
 				if(is_old(thread, lock)) {
@@ -70,13 +71,13 @@ void bzz_lock(bzz_t lock) {
 					add_active(thread, lock);
 				}
 			}
-			free_threads = lock.max_active_threads - lock.active_threads;
+			free_threads = lock->max_active_threads - lock->active_threads;
 		} while(free_threads <= 0);
 	}
 	else {
 		add_active(thread, lock);
 	}
-	pthread_mutex_unlock(&lock.mutex);
+	pthread_mutex_unlock(&lock->mutex);
 }
 
 void bzz_release(bzz_t lock) {
@@ -88,20 +89,20 @@ void bzz_release(bzz_t lock) {
 
 /* NOT THREAD SAFE! */
 /* Only call when mutex acquired */
-void add_active(bzz_thread_t *thread, bzz_t lock) {
+void add_active(bzz_thread_t *thread, bzz_t *lock) {
 	if(is_gold(thread)) {
-		int position = list_locate(lock.waiting_gold_threads, thread);
-		list_delete_at(lock.waiting_gold_threads, position);
+		int position = list_locate(lock->waiting_gold_threads, thread);
+		list_delete_at(lock->waiting_gold_threads, position);
 	} else {
-		int position = list_locate(lock.waiting_black_threads, thread);
-		list_delete_at(lock.waiting_black_threads, position);
+		int position = list_locate(lock->waiting_black_threads, thread);
+		list_delete_at(lock->waiting_black_threads, position);
 	}
-	lock.active_threads++;
+	lock->active_threads++;
 }
 
-int is_old(bzz_thread_t *thread, bzz_t lock) {
+int is_old(bzz_thread_t *thread, bzz_t *lock) {
 	useconds_t elapsed_usec = (useconds_t)((thread->waiting_since - time_with_usec()) * 1000000.0);
-	return elapsed_usec > lock.timeout;
+	return elapsed_usec > lock->timeout;
 }
 
 int is_black(bzz_thread_t *thread) {
@@ -112,16 +113,16 @@ int is_gold(bzz_thread_t *thread) {
 	return thread->color == BZZ_GOLD;
 }
 
-void wait(bzz_t lock) {
-	pthread_cond_wait(&lock.cond, &lock.mutex);
+void bzz_wait(bzz_t *lock) {
+	pthread_cond_wait(&lock->cond, &lock->mutex);
 }
 
-void add_to_waiting_threads(bzz_thread_t *thread, bzz_t lock) {
+void add_to_waiting_threads(bzz_thread_t *thread, bzz_t *lock) {
 	thread->waiting_since = time_with_usec();
 	if(is_gold(thread)) {
-		list_append(lock.waiting_gold_threads, thread);
+		list_append(lock->waiting_gold_threads, thread);
 	} else {
-		list_append(lock.waiting_black_threads, thread);
+		list_append(lock->waiting_black_threads, thread);
 	}
 }
 
@@ -130,21 +131,21 @@ double time_with_usec() {
 	return time.tv_sec + (time.tv_usec / 1000000.0);
 }
 
-unsigned int num_black_waiting(bzz_t lock) {
-	return list_size(lock.waiting_black_threads);
+unsigned int num_black_waiting(bzz_t *lock) {
+	return list_size(lock->waiting_black_threads);
 }
 
-unsigned int num_gold_waiting(bzz_t lock) {
-	return list_size(lock.waiting_gold_threads);
+unsigned int num_gold_waiting(bzz_t *lock) {
+	return list_size(lock->waiting_gold_threads);
 }
 
-int full_active_threads(bzz_t lock) {
-	return lock.active_threads >= lock.max_active_threads;
+int full_active_threads(bzz_t *lock) {
+	return lock->active_threads >= lock->max_active_threads;
 }
 
-unsigned int num_old_gold_waiting(bzz_t lock) {
+unsigned int num_old_gold_waiting(bzz_t *lock) {
 	unsigned int num_old_gold_waiting = 0;
-	list_t *waiting_gold_threads = lock.waiting_gold_threads;
+	list_t *waiting_gold_threads = lock->waiting_gold_threads;
 	list_iterator_start(waiting_gold_threads);
 
 	while(list_iterator_hasnext(waiting_gold_threads)) {
@@ -158,10 +159,10 @@ unsigned int num_old_gold_waiting(bzz_t lock) {
 	return num_old_gold_waiting;
 }
 
-void* get_thread(int id, bzz_t lock) {
+void* get_thread(int id, bzz_t *lock) {
 	bzz_thread_t *found = 0;
 
-	list_t *threads = lock.threads;
+	list_t *threads = lock->threads;
 	list_iterator_start(threads);
 
 	while(list_iterator_hasnext(threads)) {

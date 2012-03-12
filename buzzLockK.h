@@ -1,28 +1,30 @@
 #include <linux/types.h>
 #include <linux/spinlock.h>
+#include <list.h>
 
-#ifndef BUZZLOCKU_H_
-#define BUZZLOCKU_H_
+#ifndef BUZZLOCKK_H_
+#define BUZZLOCKK_H_
 
-typedef int useconds_t;
-typedef int BZZ_BLACK = 1;
-typedef int BZZ_GOLD = 0;
+typedef BZZ_BLACK = 1;
+typedef BZZ_GOLD = 0;
 
-typedef struct{
-	tid_t TID;
-	int BZZ_COLOR = -1;
+typedef struct {
+	struct list_head list;
+	tid_t tid;
+	int BZZ_COLOR;
+	/*time stamp*/
 }bzz_thread_t;
 
 typedef struct {
 	spinlock_t mutex = SPIN_LOCK_UNLOCKED;
 	unsigned long flags;
-	int locked = 0;
-	int locking_thread_PID;
-	int max_num_threads = 0;
-	useconds_t timeout = 0;
-	bzz_thread_t *threads;
+	int num_locked;
+	tid_t locking_thread_tid;
+	suseconds_t timeout;
+	bzz_thread_t known_threads;
+	/*wait_threads queue(s)?*/
 }bzz_t;
 
-
+#include <buzz.h>
 
 #endif /* BUZZLOCKU_H_ */

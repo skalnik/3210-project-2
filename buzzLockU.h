@@ -8,6 +8,8 @@
 #define BZZ_BLACK 1
 #define BZZ_GOLD  0
 
+typedef int useconds_t;
+
 typedef struct {
 	pid_t id;
 	int color;

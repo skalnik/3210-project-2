@@ -1,8 +1,8 @@
 #include <unistd.h>
 #include "vendor/simclist.h"
 
-#ifndef BUZZLOCK_H_
-#define BUZZLOCK_H_
+#ifndef BUZZLOCKU_H_
+#define BUZZLOCKU_H_
 
 #define BZZ_BLACK 1
 #define BZZ_GOLD  0

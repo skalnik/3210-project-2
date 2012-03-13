@@ -1,5 +1,4 @@
 #include "buzzLockU.h"
-#include <stdio.h>
 
 void init_bzz(bzz_t *lock, int num_threads, useconds_t timeout) {
 	lock->max_active_threads = num_threads;
@@ -46,10 +45,8 @@ void bzz_color(int color, bzz_t *lock) {
 }
 
 void bzz_lock(bzz_t *lock) {
-	pthread_mutex_lock(&lock->mutex);
 	pid_t id = get_thread_id();
-	int free_threads;
-
+	pthread_mutex_lock(&lock->mutex);
 	bzz_thread_t *thread = (bzz_thread_t *)get_thread(id, lock);
 	
 	if(full_active_threads(lock)) {
@@ -79,8 +76,7 @@ void bzz_lock(bzz_t *lock) {
 					}
 				}
 			}
-			free_threads = lock->max_active_threads - lock->active_threads;
-		} while(free_threads <= 0);
+		} while(1);
 	}
 	else {
 		add_active(thread, lock);
@@ -93,7 +89,7 @@ void bzz_release(bzz_t *lock) {
 	pthread_mutex_lock(&lock->mutex);
 	lock->active_threads--;
 	pthread_mutex_unlock(&lock->mutex);
-	pthread_cond_signal(&lock->cond);
+	pthread_cond_broadcast(&lock->cond);
 }
 
 /* NOT THREAD SAFE! */
@@ -137,11 +133,13 @@ double time_with_usec() {
 }
 
 unsigned int num_black_waiting(bzz_t *lock) {
-	return list_size(lock->waiting_black_threads);
+	unsigned int ret = list_size(lock->waiting_black_threads);
+	return ret;
 }
 
 unsigned int num_gold_waiting(bzz_t *lock) {
-	return list_size(lock->waiting_gold_threads);
+	unsigned int ret = list_size(lock->waiting_gold_threads);
+	return ret;
 }
 
 int full_active_threads(bzz_t *lock) {

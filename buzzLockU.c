@@ -56,7 +56,7 @@ void bzz_lock(bzz_t *lock) {
 		add_to_waiting_threads(thread, lock);
 
 		do {
-			bzz_wait(lock);
+			pthread_cond_wait(&lock->cond, &lock->mutex);
 
 			if(!full_active_threads(lock)) {
 				if(is_gold(thread)) {
@@ -113,10 +113,6 @@ int is_black(bzz_thread_t *thread) {
 
 int is_gold(bzz_thread_t *thread) {
 	return thread->color == BZZ_GOLD;
-}
-
-void bzz_wait(bzz_t *lock) {
-	pthread_cond_wait(&lock->cond, &lock->mutex);
 }
 
 void add_to_waiting_threads(bzz_thread_t *thread, bzz_t *lock) {

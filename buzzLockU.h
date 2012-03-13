@@ -36,7 +36,6 @@ int is_black(bzz_thread_t*);
 int is_gold(bzz_thread_t*);
 int is_old(bzz_thread_t*, bzz_t *);
 void add_to_waiting_threads(bzz_thread_t*, bzz_t *);
-void bzz_wait(bzz_t *);
 double time_with_usec();
 unsigned int num_black_waiting(bzz_t *);
 unsigned int num_gold_waiting(bzz_t *);

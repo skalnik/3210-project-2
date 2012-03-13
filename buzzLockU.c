@@ -61,15 +61,21 @@ void bzz_lock(bzz_t *lock) {
 			if(!full_active_threads(lock)) {
 				if(is_gold(thread)) {
 					if(is_old(thread, lock)) {
-						return add_active(thread, lock);
+						add_active(thread, lock);
+						pthread_mutex_unlock(&lock->mutex);
+						return;
 					}
 				  else if(num_black_waiting(lock) <= 0) {
-						return add_active(thread, lock);
+						add_active(thread, lock);
+						pthread_mutex_unlock(&lock->mutex);
+						return;
 					}
 				}
 				else {
 					if(num_old_gold_waiting(lock) <= 0) {
-						return add_active(thread, lock);
+						add_active(thread, lock);
+						pthread_mutex_unlock(&lock->mutex);
+						return;
 					}
 				}
 			}
@@ -77,7 +83,9 @@ void bzz_lock(bzz_t *lock) {
 		} while(free_threads <= 0);
 	}
 	else {
-		return add_active(thread, lock);
+		add_active(thread, lock);
+		pthread_mutex_unlock(&lock->mutex);
+		return;
 	}
 }
 
@@ -89,7 +97,7 @@ void bzz_release(bzz_t *lock) {
 }
 
 /* NOT THREAD SAFE! */
-/* Only call when mutex acquired */
+/* ONLY CALL WHEN MUTEX ACQUIRED */
 void add_active(bzz_thread_t *thread, bzz_t *lock) {
 	if(is_gold(thread)) {
 		int position = list_locate(lock->waiting_gold_threads, thread);
@@ -99,7 +107,6 @@ void add_active(bzz_thread_t *thread, bzz_t *lock) {
 		list_delete_at(lock->waiting_black_threads, position);
 	}
 	lock->active_threads++;
-	pthread_mutex_unlock(&lock->mutex);
 }
 
 int is_old(bzz_thread_t *thread, bzz_t *lock) {
